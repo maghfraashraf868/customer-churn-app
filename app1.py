@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 import streamlit as st
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.preprocessing import StandardScaler
+import joblib
+
 
 # 1. Page Configuration
 st.set_page_config(
@@ -13,22 +13,12 @@ st.set_page_config(
 
 # 2. Smart Solution: Internal Model Generation to completely bypass file loading errors
 @st.cache_resource
-def initialize_internal_system():
-    # Creating a synthetic baseline dataset to train a quick internal high-accuracy model
-    np.random.seed(42)
-    X_dummy = np.random.randn(100, 16)
-    y_dummy = np.random.randint(0, 2, 100)
-    
-    # Training Internal Scaler and Model
-    scaler = StandardScaler()
-    scaled_X = scaler.fit_transform(X_dummy)
-    
-    model = RandomForestClassifier(n_estimators=50, random_state=42)
-    model.fit(scaled_X, y_dummy)
+def load_assets():
+    model = joblib.load("final_churn_model (1).pkl") 
+    scaler = joblib.load("scaler.pkl")
     return model, scaler
 
-# Initialize safely without loading any external .sav files
-model, scaler = initialize_system_assets = initialize_internal_system()
+model, scaler = load_assets()
 
 # 3. App Navigation Tabs
 tab1, tab2 = st.tabs(["🔮 Churn Prediction App", "📈 System Performance & Monitor"])
