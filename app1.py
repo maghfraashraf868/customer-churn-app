@@ -12,14 +12,15 @@ st.set_page_config(
 )
 
 @st.cache_resource
+@st.cache_resource
 def load_assets():
-    try:
-        model = joblib.load("final_churn_model (1).pkl")
-        scaler = joblib.load("scaler.pkl")
-        return model, scaler
-    except Exception as e:
-        st.error(e)
-        raise e
+    import os
+    st.write("Files:", os.listdir())
+
+    model = joblib.load("final_churn_model (1).pkl")
+    scaler = joblib.load("scaler.pkl")
+
+    return model, scaler
 
 model, scaler = load_assets()
 
