@@ -11,7 +11,6 @@ st.set_page_config(
     layout="wide"
 )
 
-# 2. Smart Solution: Internal Model Generation to completely bypass file loading errors
 @st.cache_resource
 def load_assets():
     model = joblib.load("final_churn_model (1).pkl") 
