@@ -12,7 +12,6 @@ st.set_page_config(
 )
 
 @st.cache_resource
-@st.cache_resource
 def load_assets():
     import os
     st.write("Files:", os.listdir())
