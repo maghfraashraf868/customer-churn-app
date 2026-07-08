@@ -11,8 +11,8 @@ st.set_page_config(
 )
 
 @st.cache_resource
+@st.cache_resource
 def load_assets():
-    # Load model and scaler
     model = joblib.load("final_churn_model (1).pkl")
     scaler = joblib.load("scaler.pkl")
     return model, scaler
