@@ -3,14 +3,12 @@ import pandas as pd
 import streamlit as st
 import joblib
 
-# 1. Page Configuration
 st.set_page_config(
     page_title="Customer Churn System & Monitor", 
     page_icon="📊", 
     layout="wide"
 )
 
-@st.cache_resource
 @st.cache_resource
 def load_assets():
     model = joblib.load("final_churn_model (1).pkl")
@@ -19,7 +17,6 @@ def load_assets():
 
 model, scaler = load_assets()
 
-# 2. App Navigation Tabs
 tab1, tab2 = st.tabs(["🔮 Churn Prediction App", "📈 System Performance & Monitor"])
 
 with tab1:
@@ -40,56 +37,77 @@ with tab1:
         products_number = st.selectbox("Number of Products", [1, 2, 3, 4])
         credit_card = st.selectbox("Has Credit Card?", options=[1, 0], format_func=lambda x: "Yes" if x == 1 else "No")
         active_member = st.selectbox("Is Active Member?", options=[1, 0], format_func=lambda x: "Yes" if x == 1 else "No")
-        gender = st.selectbox("Gender", ["Male", "Female"])
+        gender_input = st.selectbox("Gender", ["Male", "Female"])
         country = st.selectbox("Country", ["France", "Germany", "Spain"])
 
-    # Feature Engineering Section
-    gender_female = 1 if gender == "Female" else 0
-    country_germany = 1 if country == "Germany" else 0
-    country_spain = 1 if country == "Spain" else 0
-
-    balance_salary_ratio = balance / (estimated_salary + 1)
-    high_balance = 1 if balance > 100000 else 0
-    balance_log = np.log1p(balance)
-    active_with_card = 1 if (active_member == 1 and credit_card == 1) else 0
-    age_group_31_45 = 1 if 31 <= age <= 45 else 0
-
-    input_data = pd.DataFrame({
-        "credit_score": [credit_score], "age": [age], "tenure": [tenure], "balance": [balance],
-        "products_number": [products_number], "credit_card": [credit_card], "active_member": [active_member],
-        "estimated_salary": [estimated_salary], "balance_salary_ratio": [balance_salary_ratio],
-        "high_balance": [high_balance], "balance_log": [balance_log], "active_with_card": [active_with_card],
-        "gender_Female": [gender_female], "country_Germany": [country_germany], "country_Spain": [country_spain],
-        "age_group_31-45": [age_group_31_45]
-    })
-
     st.write("---")
+    
     if st.button("Predict Customer Status 🔍"):
         try:
-            cols = [
-                "credit_score", "age", "tenure", "balance", "products_number", "credit_card",
-                "active_member", "estimated_salary", "balance_salary_ratio", "high_balance",
-                "balance_log", "active_with_card", "gender_Female", "country_Germany",
-                "country_Spain", "age_group_31-45"
-            ]
-            input_data = input_data[cols]
-            scaled_features = scaler.transform(input_data)
-            prediction = model.predict(scaled_features)
+            gender = 1 if gender_input == "Male" else 0
+            country_Germany = 1 if country == "Germany" else 0
+            country_Spain = 1 if country == "Spain" else 0
             
-            # --- السحر هنا: كود الديمو عشان الشاشة تنور أحمر ---
-            if age >= 60 and balance >= 100000:
-                prediction = [1]
-            # ----------------------------------------------------
+            balance_salary_ratio = balance / (estimated_salary + 1)
+            high_balance = 1 if balance > 100000 else 0
+            balance_log = np.log1p(balance)
+            active_with_card = 1 if (active_member == 1 and credit_card == 1) else 0
+            
+            products_group_2 = 1 if products_number == 2 else 0
+            products_group_3_plus = 1 if products_number >= 3 else 0
+            
+            age_group_31_45 = 1 if 31 <= age <= 45 else 0
+            age_group_46_60 = 1 if 46 <= age <= 60 else 0
+            age_group_60_plus = 1 if age > 60 else 0
+            
+            credit_category_Fair = 1 if 580 <= credit_score <= 669 else 0
+            credit_category_Good = 1 if 670 <= credit_score <= 739 else 0
+            credit_category_Excellent = 1 if credit_score >= 740 else 0
+            
+            tenure_group_Medium = 1 if 3 <= tenure <= 7 else 0
+            tenure_group_Loyal = 1 if tenure > 7 else 0
+
+            cols_25 = [
+                'credit_score', 'gender', 'age', 'tenure', 'balance', 'products_number', 
+                'credit_card', 'active_member', 'estimated_salary', 'country_Germany', 
+                'country_Spain', 'balance_salary_ratio', 'high_balance', 'balance_log', 
+                'active_with_card', 'products_group_2', 'products_group_3+', 
+                'age_group_31-45', 'age_group_46-60', 'age_group_60+', 
+                'credit_category_Fair', 'credit_category_Good', 'credit_category_Excellent', 
+                'tenure_group_Medium', 'tenure_group_Loyal'
+            ]
+            
+            input_dict = {
+                'credit_score': credit_score, 'gender': gender, 'age': age, 'tenure': tenure, 
+                'balance': balance, 'products_number': products_number, 'credit_card': credit_card, 
+                'active_member': active_member, 'estimated_salary': estimated_salary, 
+                'country_Germany': country_Germany, 'country_Spain': country_Spain, 
+                'balance_salary_ratio': balance_salary_ratio, 'high_balance': high_balance, 
+                'balance_log': balance_log, 'active_with_card': active_with_card, 
+                'products_group_2': products_group_2, 'products_group_3+': products_group_3_plus, 
+                'age_group_31-45': age_group_31_45, 'age_group_46-60': age_group_46_60, 
+                'age_group_60+': age_group_60_plus, 'credit_category_Fair': credit_category_Fair, 
+                'credit_category_Good': credit_category_Good, 'credit_category_Excellent': credit_category_Excellent, 
+                'tenure_group_Medium': tenure_group_Medium, 'tenure_group_Loyal': tenure_group_Loyal
+            }
+            
+            input_data = pd.DataFrame([input_dict], columns=cols_25)
+            
+            numeric_cols = [
+                "credit_score", "age", "tenure", "balance", "products_number", 
+                "estimated_salary", "balance_salary_ratio", "balance_log"
+            ]
+            
+            input_data[numeric_cols] = scaler.transform(input_data[numeric_cols].values)
+            
+            prediction = model.predict(input_data.values)
             
             if "total_predictions" not in st.session_state:
                 st.session_state["total_predictions"] = 154
                 st.session_state["total_churns"] = 34
-            
             st.session_state["total_predictions"] += 1
             
             st.subheader("Results:")
-            
-            # حل مشكلة نوع الداتا (Type Mismatch)
             result = str(prediction[0]).strip()
             
             if result in ["1", "1.0", "Yes", "yes", "True"]:
@@ -97,7 +115,7 @@ with tab1:
                 st.error("⚠️ The customer is highly likely to Churn (Leave the bank/company).")
             else:
                 st.success("✅ The customer is stable (Likely to Stay).")
-        
+                
         except Exception as e:
             st.error(f"Prediction Pipeline Error: {e}")
 
@@ -108,12 +126,8 @@ with tab2:
     total_preds = st.session_state.get("total_predictions", 154)
     churn_count = st.session_state.get("total_churns", 34)
     stay_count = total_preds - churn_count
-
     
-    if total_preds > 0:
-        churn_rate = (churn_count / total_preds) * 100
-    else:
-        churn_rate = 0.0
+    churn_rate = (churn_count / total_preds) * 100 if total_preds > 0 else 0.0
     
     kpi1, kpi2, kpi3 = st.columns(3)
     kpi1.metric(label="Total Logged Inputs Checked", value=total_preds)
